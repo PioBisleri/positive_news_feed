@@ -22,7 +22,7 @@
 ## 🚀 Quick Start
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/PioBisleri/positive_news_feed.git
 cd positive_news_feed
 ./start.sh
 ```
