@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
 
 from database import get_db
-from schemas import ArticleCreate, ArticleResponse, ReactionUpdate
+from schemas import ArticleCreate, ArticleResponse
 import crud
 
 router = APIRouter(prefix="/articles", tags=["articles"])
@@ -43,20 +43,3 @@ async def toggle_save(article_id: int, db: AsyncSession = Depends(get_db)):
     if not article:
         raise HTTPException(status_code=404, detail="Article not found")
     return article
-
-
-@router.post("/{article_id}/react")
-async def add_reaction(
-    article_id: int,
-    reaction: ReactionUpdate,
-    db: AsyncSession = Depends(get_db),
-):
-    article = await crud.get_article(db, article_id)
-    if not article:
-        raise HTTPException(status_code=404, detail="Article not found")
-    updated_reaction = await crud.add_reaction(db, article_id, reaction.reaction_type)
-    return {
-        "article_id": article_id,
-        "reaction_type": reaction.reaction_type,
-        "count": updated_reaction.count,
-    }
