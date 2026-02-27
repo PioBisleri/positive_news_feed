@@ -12,7 +12,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 from database import AsyncSessionLocal
-from models import Article, Category, Reaction
+from models import Article, Category
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +76,6 @@ CATEGORY_QUERIES: dict[str, list[str]] = {
     ],
 }
 
-REACTION_TYPES = ["inspiring", "heartwarming", "amazing", "hopeful"]
 
 # Positive sentiment terms — any matching article is strongly preferred
 POSITIVE_SIGNALS = {
@@ -234,12 +233,6 @@ async def fetch_and_store_news(api_key: str) -> dict:
 
                     try:
                         await db.flush()
-                        for rtype in REACTION_TYPES:
-                            db.add(Reaction(
-                                article_id=article.id,
-                                reaction_type=rtype,
-                                count=0,
-                            ))
                         existing_urls.add(url)
                         fetched += 1
                     except IntegrityError:

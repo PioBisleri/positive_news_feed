@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from config import settings
 from fetcher import fetch_and_store_news
-from routers import articles, categories, reactions
+from routers import articles, categories
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +58,6 @@ app.add_middleware(
 # ── Routers ───────────────────────────────────────────────────────────────────
 app.include_router(articles.router, prefix="/api")
 app.include_router(categories.router, prefix="/api")
-app.include_router(reactions.router, prefix="/api")
 
 
 # ── Health Check ──────────────────────────────────────────────────────────────

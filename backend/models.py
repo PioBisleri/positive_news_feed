@@ -39,19 +39,3 @@ class Article(Base):
     created_at = Column(DateTime, server_default=func.now())
 
     category = relationship("Category", back_populates="articles")
-    reactions = relationship(
-        "Reaction", back_populates="article", cascade="all, delete-orphan"
-    )
-
-
-class Reaction(Base):
-    __tablename__ = "reactions"
-
-    id = Column(Integer, primary_key=True, index=True)
-    article_id = Column(
-        Integer, ForeignKey("articles.id", ondelete="CASCADE"), nullable=False
-    )
-    reaction_type = Column(String(50), nullable=False)
-    count = Column(Integer, default=0)
-
-    article = relationship("Article", back_populates="reactions")

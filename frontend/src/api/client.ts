@@ -28,18 +28,6 @@ export async function toggleSave(id: number): Promise<Article> {
     return data;
 }
 
-export async function addReaction(
-    id: number,
-    reactionType: string
-): Promise<{ article_id: number; reaction_type: string; count: number }> {
-    const { data } = await client.post<{
-        article_id: number;
-        reaction_type: string;
-        count: number;
-    }>(`/articles/${id}/react`, { reaction_type: reactionType });
-    return data;
-}
-
 export async function fetchCategories(): Promise<Category[]> {
     const { data } = await client.get<Category[]>('/categories');
     return data;

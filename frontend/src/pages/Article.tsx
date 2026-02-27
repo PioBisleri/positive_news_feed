@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import type { Article } from '../types';
 import { fetchArticle, toggleSave } from '../api/client';
-import ReactionBar from '../components/ReactionBar';
 
 const formatDate = (dateStr: string | null): string => {
     if (!dateStr) return '';
@@ -143,14 +142,6 @@ const ArticlePage: React.FC = () => {
                         {para.trim()}
                     </p>
                 ))}
-            </div>
-
-            {/* Reaction Bar */}
-            <div className="bg-amber-50 rounded-2xl p-6 mb-6">
-                <h3 className="text-sm font-bold text-gray-600 uppercase tracking-wide mb-4">
-                    How did this story make you feel?
-                </h3>
-                <ReactionBar articleId={article.id} reactions={article.reactions} size="lg" />
             </div>
 
             {/* Save Button */}

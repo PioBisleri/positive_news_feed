@@ -1,7 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Article } from '../types';
-import ReactionBar from './ReactionBar';
 import { toggleSave } from '../api/client';
 
 interface NewsCardProps {
@@ -110,31 +109,25 @@ const NewsCard: React.FC<NewsCardProps> = ({ article, onSaveToggle, featured = f
 
                 {/* Footer */}
                 <div>
-                    {/* Source + Date */}
-                    <div className="flex items-center justify-between text-xs text-gray-400 mb-3">
-                        <span className="font-medium text-gray-500 truncate max-w-[60%]">
+                    {/* Source + Date + Bookmark */}
+                    <div className="flex items-center justify-between text-xs text-gray-400">
+                        <span className="font-medium text-gray-500 truncate max-w-[70%]">
                             {article.source}
                         </span>
-                        <span>{formatRelativeDate(article.published_at)}</span>
-                    </div>
-
-                    {/* Reaction bar + Save */}
-                    <div className="flex items-center justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                            <ReactionBar articleId={article.id} reactions={article.reactions} size="sm" />
+                        <div className="flex items-center gap-3">
+                            <span>{formatRelativeDate(article.published_at)}</span>
+                            {/* Bookmark button */}
+                            <button
+                                onClick={handleSave}
+                                disabled={saving}
+                                title={article.is_saved ? 'Remove from saved' : 'Save article'}
+                                className={`text-xl transition-all duration-200 hover:scale-125 active:scale-95
+                  ${saving ? 'opacity-50' : ''}
+                  ${article.is_saved ? 'opacity-100' : 'opacity-40 hover:opacity-70'}`}
+                            >
+                                🔖
+                            </button>
                         </div>
-
-                        {/* Bookmark button */}
-                        <button
-                            onClick={handleSave}
-                            disabled={saving}
-                            title={article.is_saved ? 'Remove from saved' : 'Save article'}
-                            className={`flex-shrink-0 text-xl transition-all duration-200 hover:scale-125 active:scale-95
-                ${saving ? 'opacity-50' : ''}
-                ${article.is_saved ? 'opacity-100' : 'opacity-40 hover:opacity-70'}`}
-                        >
-                            {article.is_saved ? '🔖' : '🔖'}
-                        </button>
                     </div>
                 </div>
             </div>

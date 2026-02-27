@@ -3,7 +3,7 @@ from sqlalchemy import select, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from models import Article, Category, Reaction
+from models import Article, Category
 from schemas import ArticleCreate
 
 
@@ -19,10 +19,7 @@ async def get_categories(db: AsyncSession) -> List[Category]:
 def _article_query():
     return (
         select(Article)
-        .options(
-            selectinload(Article.category),
-            selectinload(Article.reactions),
-        )
+        .options(selectinload(Article.category))
     )
 
 
@@ -68,7 +65,6 @@ async def create_article(db: AsyncSession, article_data: ArticleCreate) -> Artic
     db.add(article)
     await db.commit()
     await db.refresh(article)
-    # Reload with relationships
     return await get_article(db, article.id)  # type: ignore[return-value]
 
 
@@ -78,26 +74,4 @@ async def toggle_save(db: AsyncSession, article_id: int) -> Optional[Article]:
         return None
     article.is_saved = not article.is_saved
     await db.commit()
-    await db.refresh(article)
     return await get_article(db, article_id)
-
-
-async def add_reaction(
-    db: AsyncSession, article_id: int, reaction_type: str
-) -> Optional[Reaction]:
-    result = await db.execute(
-        select(Reaction).where(
-            Reaction.article_id == article_id,
-            Reaction.reaction_type == reaction_type,
-        )
-    )
-    reaction = result.scalars().first()
-    if not reaction:
-        # Create a new reaction row
-        reaction = Reaction(article_id=article_id, reaction_type=reaction_type, count=1)
-        db.add(reaction)
-    else:
-        reaction.count += 1
-    await db.commit()
-    await db.refresh(reaction)
-    return reaction

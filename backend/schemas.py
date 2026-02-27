@@ -17,21 +17,6 @@ class CategoryResponse(CategoryBase):
     model_config = ConfigDict(from_attributes=True)
 
 
-# ── Reaction ──────────────────────────────────────────────────────────────────
-
-class ReactionResponse(BaseModel):
-    id: int
-    article_id: int
-    reaction_type: str
-    count: int
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class ReactionUpdate(BaseModel):
-    reaction_type: str
-
-
 # ── Article ───────────────────────────────────────────────────────────────────
 
 class ArticleBase(BaseModel):
@@ -56,6 +41,5 @@ class ArticleResponse(ArticleBase):
     is_saved: bool
     created_at: Optional[datetime] = None
     category: Optional[CategoryResponse] = None
-    reactions: List[ReactionResponse] = []
 
     model_config = ConfigDict(from_attributes=True)
