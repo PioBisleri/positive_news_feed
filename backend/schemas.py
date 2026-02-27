@@ -39,6 +39,7 @@ class ArticleBase(BaseModel):
     summary: str
     content: Optional[str] = None
     image_url: Optional[str] = None
+    url: Optional[str] = None
     source: Optional[str] = None
     author: Optional[str] = None
     category_id: Optional[int] = None

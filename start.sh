@@ -13,6 +13,18 @@ info()  { echo -e "${GREEN}[BrightFeed]${NC} $*"; }
 warn()  { echo -e "${YELLOW}[BrightFeed]${NC} $*"; }
 error() { echo -e "${RED}[BrightFeed]${NC} $*" >&2; }
 
+# ── Check API key ─────────────────────────────────────────────────────────────
+if [ -f "$BACKEND/.env" ]; then
+    KEY=$(grep -E '^NEWS_API_KEY=' "$BACKEND/.env" | cut -d= -f2)
+fi
+if [ -z "$KEY" ] || [ "$KEY" = "your_newsapi_key_here" ]; then
+    warn "NEWS_API_KEY is not set in backend/.env"
+    warn "Get a free key at https://newsapi.org/register and add:"
+    warn "  NEWS_API_KEY=your_key  →  backend/.env"
+    warn "The app will still run but won't fetch live news."
+    echo ""
+fi
+
 # ── 1. PostgreSQL ────────────────────────────────────────────────────────────
 info "Checking PostgreSQL..."
 if ! pg_isready -q 2>/dev/null; then

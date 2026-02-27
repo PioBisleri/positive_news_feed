@@ -26,6 +26,7 @@ class Article(Base):
     summary = Column(Text, nullable=False)
     content = Column(Text)
     image_url = Column(String(1000))
+    url = Column(String(1000), unique=True, nullable=True, index=True)
     source = Column(String(200))
     author = Column(String(200))
     published_at = Column(
