@@ -15,11 +15,13 @@ elif _raw_url.startswith("postgresql://"):
 else:
     ASYNC_DATABASE_URL = _raw_url
 
-# asyncpg does NOT support ?sslmode=require in the URL — strip it and pass ssl via connect_args
-_ssl_required = "sslmode=require" in ASYNC_DATABASE_URL
-ASYNC_DATABASE_URL = ASYNC_DATABASE_URL.replace("?sslmode=require", "").replace("&sslmode=require", "")
+# asyncpg does NOT support any query params in the URL (e.g. ?sslmode=require&channel_binding=require).
+# Strip the entire query string and pass ssl via connect_args instead.
+_has_ssl = "sslmode=require" in ASYNC_DATABASE_URL or "ssl" in ASYNC_DATABASE_URL
+if "?" in ASYNC_DATABASE_URL:
+    ASYNC_DATABASE_URL = ASYNC_DATABASE_URL.split("?")[0]
 
-_connect_args = {"ssl": "require"} if _ssl_required else {}
+_connect_args = {"ssl": "require"} if _has_ssl else {}
 
 engine = create_async_engine(ASYNC_DATABASE_URL, echo=False, connect_args=_connect_args)
 
