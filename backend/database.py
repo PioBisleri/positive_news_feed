@@ -5,11 +5,23 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:password@localhost:5432/positivenews")
-# Convert to async URL
-ASYNC_DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://")
+_raw_url = os.getenv("DATABASE_URL", "postgresql://postgres:password@localhost:5432/positivenews")
 
-engine = create_async_engine(ASYNC_DATABASE_URL, echo=False)
+# Safely convert to asyncpg URL (avoid double-converting if already set)
+if _raw_url.startswith("postgresql+asyncpg://"):
+    ASYNC_DATABASE_URL = _raw_url
+elif _raw_url.startswith("postgresql://"):
+    ASYNC_DATABASE_URL = _raw_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+else:
+    ASYNC_DATABASE_URL = _raw_url
+
+# asyncpg does NOT support ?sslmode=require in the URL — strip it and pass ssl via connect_args
+_ssl_required = "sslmode=require" in ASYNC_DATABASE_URL
+ASYNC_DATABASE_URL = ASYNC_DATABASE_URL.replace("?sslmode=require", "").replace("&sslmode=require", "")
+
+_connect_args = {"ssl": "require"} if _ssl_required else {}
+
+engine = create_async_engine(ASYNC_DATABASE_URL, echo=False, connect_args=_connect_args)
 
 AsyncSessionLocal = async_sessionmaker(
     bind=engine,

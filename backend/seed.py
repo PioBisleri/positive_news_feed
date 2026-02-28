@@ -26,6 +26,27 @@ CATEGORIES = [
 ]
 
 
+# ── Async version (called from main.py lifespan on Render startup) ─────────────
+
+async def run_seed_async() -> None:
+    """Idempotent async seed — inserts categories if they don't exist yet."""
+    from sqlalchemy import text
+    from database import AsyncSessionLocal
+
+    async with AsyncSessionLocal() as db:
+        for cat in CATEGORIES:
+            await db.execute(
+                text(
+                    "INSERT INTO categories (name, emoji, color) VALUES (:name, :emoji, :color) "
+                    "ON CONFLICT (name) DO UPDATE SET emoji = EXCLUDED.emoji, color = EXCLUDED.color"
+                ),
+                {"name": cat["name"], "emoji": cat["emoji"], "color": cat["color"]},
+            )
+        await db.commit()
+
+
+# ── Sync version (run directly: python seed.py) ────────────────────────────────
+
 def run_seed():
     conn = psycopg.connect(DATABASE_URL)
     cur = conn.cursor()

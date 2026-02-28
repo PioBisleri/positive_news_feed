@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 import logging
+import os
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
@@ -7,6 +8,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from config import settings
+from database import engine
 from fetcher import fetch_and_store_news
 from routers import articles, categories
 
@@ -17,7 +19,21 @@ scheduler = AsyncIOScheduler()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Start background scheduler on startup; shut it down on exit."""
+    """Create DB tables, seed categories, start scheduler, and run first fetch."""
+    import asyncio
+    from database import engine
+    from models import Base
+    from seed import run_seed_async
+
+    # Auto-create tables (safe — uses CREATE TABLE IF NOT EXISTS logic)
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    logger.info("🗃️  Database tables ready")
+
+    # Seed categories (idempotent)
+    await run_seed_async()
+    logger.info("🌱 Categories seeded")
+
     # Schedule news fetch every 6 hours
     scheduler.add_job(
         fetch_and_store_news,
@@ -30,7 +46,6 @@ async def lifespan(app: FastAPI):
     logger.info("🕐 News fetch scheduler started (every 6 hours)")
 
     # Trigger an immediate fetch on startup (non-blocking)
-    import asyncio
     asyncio.create_task(fetch_and_store_news(settings.news_api_key))
 
     yield  # ── app is running ──
@@ -47,9 +62,13 @@ app = FastAPI(
 )
 
 # ── CORS ──────────────────────────────────────────────────────────────────────
+# Set FRONTEND_URL env var on Render to your Vercel app URL, e.g. https://brightfeed.vercel.app
+_frontend_url = os.getenv("FRONTEND_URL", "")
+_allowed_origins = [_frontend_url] if _frontend_url else ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://vercel.com/piobisleris-projects/brightfeed/5NHpNksdWonvMSNX9KYRNNYB1LZF"],
+    allow_origins=_allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
