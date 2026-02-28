@@ -1,19 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Bookmark, Star, Pen, Newspaper, Calendar } from 'lucide-react';
 import type { Article } from '../types';
 import { fetchArticle, toggleSave } from '../api/client';
 
 const formatDate = (dateStr: string | null): string => {
     if (!dateStr) return '';
-    return new Date(dateStr).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-    });
+    return new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 };
-
-const getCategoryStyles = (color: string | null): string =>
-    color ?? 'bg-amber-100 text-amber-800';
 
 const ArticlePage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -38,23 +32,18 @@ const ArticlePage: React.FC = () => {
         try {
             const updated = await toggleSave(article.id);
             setArticle((prev) => (prev ? { ...prev, is_saved: updated.is_saved } : prev));
-        } catch {
-            // ignore
-        } finally {
-            setSaving(false);
-        }
+        } catch { /* ignore */ }
+        finally { setSaving(false); }
     };
 
     if (loading) {
         return (
-            <div className="max-w-4xl mx-auto px-4 py-10 animate-pulse">
-                <div className="h-80 bg-amber-100 rounded-2xl mb-8" />
-                <div className="h-4 bg-amber-100 rounded w-1/5 mb-4" />
-                <div className="h-8 bg-gray-200 rounded w-3/4 mb-6" />
+            <div className="max-w-4xl mx-auto px-4 py-10">
+                <div className="h-80 shimmer-bg rounded-2xl mb-8" />
+                <div className="h-4 shimmer-bg rounded-full w-1/5 mb-4" />
+                <div className="h-8 shimmer-bg rounded-lg w-3/4 mb-6" />
                 <div className="space-y-3">
-                    {[...Array(6)].map((_, i) => (
-                        <div key={i} className="h-4 bg-gray-100 rounded w-full" />
-                    ))}
+                    {[...Array(6)].map((_, i) => <div key={i} className="h-4 shimmer-bg rounded-full" />)}
                 </div>
             </div>
         );
@@ -63,13 +52,12 @@ const ArticlePage: React.FC = () => {
     if (error || !article) {
         return (
             <div className="text-center py-24">
-                <span className="text-6xl block mb-4">😔</span>
-                <p className="text-red-500 font-medium text-lg">{error ?? 'Article not found.'}</p>
+                <p className="text-red-400 font-medium text-lg mb-6">{error ?? 'Article not found.'}</p>
                 <button
                     onClick={() => navigate('/')}
-                    className="mt-6 px-6 py-2 bg-amber-500 text-white font-semibold rounded-full hover:bg-amber-600 transition-colors"
+                    className="px-6 py-2 bg-gradient-to-r from-sky-500 to-emerald-500 text-white font-semibold rounded-full hover:opacity-90 transition-opacity"
                 >
-                    ← Back to Home
+                    Back to Home
                 </button>
             </div>
         );
@@ -84,62 +72,72 @@ const ArticlePage: React.FC = () => {
             {/* Back button */}
             <button
                 onClick={() => navigate(-1)}
-                className="flex items-center gap-2 text-amber-700 font-semibold mb-6 hover:text-amber-900 transition-colors group"
+                className="flex items-center gap-2 text-sky-400 hover:text-sky-300 font-semibold mb-6 transition-colors group"
             >
-                <span className="transition-transform group-hover:-translate-x-1">←</span>
+                <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" strokeWidth={2} />
                 Back
             </button>
 
             {/* Hero Image */}
             {article.image_url ? (
                 <div className="rounded-2xl overflow-hidden mb-8 h-64 sm:h-96">
-                    <img
-                        src={article.image_url}
-                        alt={article.title}
-                        className="w-full h-full object-cover"
-                    />
+                    <img src={article.image_url} alt={article.title} className="w-full h-full object-cover" />
                 </div>
             ) : (
-                <div className="rounded-2xl bg-gradient-to-br from-amber-200 to-orange-100 flex items-center justify-center mb-8 h-64">
-                    <span className="text-8xl opacity-60">{article.category?.emoji ?? '📰'}</span>
+                <div className="relative rounded-2xl overflow-hidden mb-8 h-64 flex items-center justify-center bg-gradient-to-br from-sky-900 via-cyan-900 to-emerald-900">
+                    <div className="absolute inset-0 opacity-10"
+                        style={{ backgroundImage: 'radial-gradient(circle, rgba(14,165,233,0.5) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
+                    <span className="relative text-8xl opacity-70">{article.category?.emoji ?? ''}</span>
                 </div>
             )}
 
-            {/* Meta */}
+            {/* Meta badges */}
             <div className="flex flex-wrap items-center gap-3 mb-4">
                 {article.category && (
-                    <span
-                        className={`text-sm font-semibold px-3 py-1 rounded-full ${getCategoryStyles(article.category.color)}`}
-                    >
+                    <span className="inline-flex items-center gap-1.5 text-sm font-semibold px-3 py-1 rounded-full bg-sky-500/15 text-sky-300 border border-sky-500/20">
                         {article.category.emoji} {article.category.name}
                     </span>
                 )}
                 {article.is_featured && (
-                    <span className="bg-amber-500 text-white text-xs font-bold px-3 py-1 rounded-full">
-                        ⭐ Featured
+                    <span className="inline-flex items-center gap-1.5 bg-gradient-to-r from-sky-500 to-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                        <Star className="w-3 h-3 fill-white" strokeWidth={0} />
+                        Featured
                     </span>
                 )}
             </div>
 
             {/* Title */}
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 leading-tight mb-4">
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-white leading-tight mb-4">
                 {article.title}
             </h1>
 
             {/* Author / Source / Date */}
-            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-8 pb-6 border-b border-gray-100">
+            <div className="flex flex-wrap items-center gap-5 text-sm text-slate-500 mb-8 pb-6 border-b border-white/[0.08]">
                 {article.author && (
-                    <span className="font-medium text-gray-700">✍️ {article.author}</span>
+                    <span className="flex items-center gap-1.5 text-slate-400">
+                        <Pen className="w-3.5 h-3.5 text-sky-500/70" strokeWidth={1.5} />
+                        {article.author}
+                    </span>
                 )}
-                {article.source && <span>📰 {article.source}</span>}
-                {article.published_at && <span>🗓️ {formatDate(article.published_at)}</span>}
+                {article.source && (
+                    <span className="flex items-center gap-1.5">
+                        <Newspaper className="w-3.5 h-3.5 text-sky-500/70" strokeWidth={1.5} />
+                        {article.source}
+                    </span>
+                )}
+                {article.published_at && (
+                    <span className="flex items-center gap-1.5">
+                        <Calendar className="w-3.5 h-3.5 text-sky-500/70" strokeWidth={1.5} />
+                        {formatDate(article.published_at)}
+                    </span>
+                )}
             </div>
 
             {/* Content */}
-            <div className="prose prose-lg max-w-none mb-10">
+            <div className="mb-12">
                 {paragraphs.map((para, idx) => (
-                    <p key={idx} className="text-gray-700 leading-relaxed text-lg mb-5">
-                        {para.trim()}
+                    <p key={idx} className="text-slate-300 leading-relaxed text-lg mb-5">
+                        {para?.trim()}
                     </p>
                 ))}
             </div>
@@ -149,15 +147,20 @@ const ArticlePage: React.FC = () => {
                 <button
                     onClick={handleSave}
                     disabled={saving}
-                    className={`flex items-center gap-2 px-6 py-3 rounded-full font-semibold text-sm transition-all duration-200
-            hover:scale-105 active:scale-95
-            ${article.is_saved
-                            ? 'bg-amber-500 text-white shadow-md hover:bg-amber-600'
-                            : 'bg-white border border-gray-200 text-gray-600 hover:border-amber-400 hover:text-amber-700'
+                    className={`flex items-center gap-2.5 px-6 py-3 rounded-full font-semibold text-sm transition-all duration-200
+                        hover:scale-105 active:scale-95
+                        ${article.is_saved
+                            ? 'bg-gradient-to-r from-sky-500 to-emerald-500 text-white shadow-lg shadow-sky-500/30'
+                            : 'bg-white/5 border border-white/10 text-slate-300 hover:border-sky-500/40 hover:bg-sky-500/10 hover:text-sky-300'
                         }
-            ${saving ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        ${saving ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                    🔖 {article.is_saved ? 'Saved!' : 'Save Story'}
+                    <Bookmark
+                        className="w-4 h-4"
+                        strokeWidth={1.5}
+                        fill={article.is_saved ? 'currentColor' : 'none'}
+                    />
+                    {article.is_saved ? 'Saved' : 'Save Story'}
                 </button>
             </div>
         </div>

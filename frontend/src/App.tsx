@@ -8,7 +8,7 @@ import Saved from './pages/Saved';
 const App: React.FC = () => {
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-amber-50 font-sans">
+      <div className="min-h-screen bg-slate-950 font-sans">
         <Navbar />
         <main>
           <Routes>
