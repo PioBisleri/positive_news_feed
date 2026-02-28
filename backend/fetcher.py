@@ -29,11 +29,10 @@ CATEGORY_QUERIES: dict[str, list[str]] = {
         "medical milestone cure treatment success",
         "space exploration mission success",
         "climate solution research innovation",
-        "new study finds benefit health",
-        "scientists develop invent create solution",
-        "research progress advance promising",
-        "gene therapy trial success patients",
-        "NASA discovery planet universe",
+        "new study finding positive health",
+        "scientists discover breakthrough research",
+        "vaccine medicine cure approved",
+        "NASA space telescope discovery",
     ],
     "Environment": [
         "conservation success wildlife recovery",
@@ -41,11 +40,9 @@ CATEGORY_QUERIES: dict[str, list[str]] = {
         "reforestation rewilding habitat restored",
         "ocean cleanup plastic pollution solution",
         "endangered species saved protected",
-        "green energy transition milestone",
-        "national park protected nature reserve",
-        "coral reef recovery restored ocean",
-        "electric vehicles adoption growth",
-        "zero emissions carbon neutral achievement",
+        "climate action clean energy milestone",
+        "national park nature reserve protected",
+        "green energy transition record",
     ],
     "Community": [
         "community hero volunteer kind act",
@@ -54,10 +51,9 @@ CATEGORY_QUERIES: dict[str, list[str]] = {
         "local hero rescued helped saved lives",
         "town village celebrates achievement milestone",
         "random act of kindness community",
-        "donation fundraising record goal reached",
-        "students youth award recognition",
-        "nonprofit impact community program success",
-        "family reunited heartwarming story",
+        "nonprofit organization helping people",
+        "students youth project positive impact",
+        "neighbors helping community together",
     ],
     "Health": [
         "health breakthrough therapy wellbeing",
@@ -65,11 +61,9 @@ CATEGORY_QUERIES: dict[str, list[str]] = {
         "hospital patient recovery miracle story",
         "public health improvement life expectancy",
         "disability accessibility achievement",
-        "new treatment approved FDA patients",
-        "vaccine success disease eradicated",
-        "longevity anti-aging research breakthrough",
-        "exercise wellness study benefit",
-        "rare disease cure hope patients",
+        "cancer treatment survival success",
+        "wellness fitness healthy lifestyle",
+        "child health milestone medical success",
     ],
     "Animals": [
         "animal rescue sanctuary saved adopted",
@@ -77,10 +71,9 @@ CATEGORY_QUERIES: dict[str, list[str]] = {
         "dog cat pet heartwarming reunited",
         "zoo breeding program endangered",
         "ocean marine life reef recovery",
-        "wolf bear eagle population recovery",
-        "shelter adoption record animals saved",
-        "dolphin whale rescued released ocean",
-        "birds migration habitat protected",
+        "stray animals shelter rescue adopted",
+        "bird butterfly insect population recovery",
+        "dolphin whale rescued released",
     ],
     "Technology": [
         "technology innovation helps people",
@@ -88,11 +81,9 @@ CATEGORY_QUERIES: dict[str, list[str]] = {
         "clean tech green solution energy",
         "AI machine learning positive benefit",
         "startup nonprofit tech social good",
-        "app platform helps community",
-        "robotics prosthetic limb disability",
-        "open source project benefit millions",
-        "tech education coding youth empowerment",
-        "medical device innovation saves lives",
+        "robot automation improves lives",
+        "medical technology device saves lives",
+        "renewable technology breakthrough affordable",
     ],
     "Arts & Culture": [
         "art culture award celebration achievement",
@@ -100,10 +91,9 @@ CATEGORY_QUERIES: dict[str, list[str]] = {
         "music concert film book celebrated",
         "cultural heritage preserved restored",
         "young artist student creative award",
-        "indigenous culture language revival",
-        "mural public art community project",
-        "literary prize award author celebrated",
-        "dance theater performance landmark",
+        "theater dance performance acclaimed",
+        "indigenous culture art revival success",
+        "author book prize literary achievement",
     ],
 }
 
@@ -160,7 +150,7 @@ async def _fetch_newsapi(client: httpx.AsyncClient, api_key: str, categories: di
                         "q": query,
                         "language": "en",
                         "sortBy": "publishedAt",
-                        "pageSize": 20,
+                        "pageSize": 50,
                         "apiKey": api_key,
                     },
                     timeout=15.0,
@@ -185,29 +175,30 @@ async def _fetch_reddit(client: httpx.AsyncClient, categories: dict[str, int]) -
     subreddits = {
         "UpliftingNews": "Community",
         "MadeMeSmile": "Community",
-        "PupliftingNews": "Animals",
+        "humanity": "Community",
         "happy": "Community",
         "goodnews": "Community",
         "WholesomeNews": "Community",
         "HumansBeingBros": "Community",
         "Positivity": "Health",
         "uplifting": "Community",
+        "ActsOfKindness": "Community",
+        "CasualConversation": "Community",
         "Eyebleach": "Animals",
-        "Futurology": "Technology",
-        "science": "Science",
-        "environment": "Environment",
-        "worldnews": "Community",
-        "todayilearned": "Community",
-        "mildlyinteresting": "Community",
-        "interestingasfuck": "Community",
-        "NatureIsFuckingLit": "Animals",
         "aww": "Animals",
-        "ConservationSuccess": "Environment",
-        "ClimateActionPlan": "Environment",
-        "SolarPunk": "Environment",
-        "EarthPorn": "Environment",
-        "spaceporn": "Science",
+        "rarepuppers": "Animals",
+        "NatureIsFuckingLit": "Environment",
+        "Futurology": "Technology",
+        "tech": "Technology",
         "space": "Science",
+        "science": "Science",
+        "todayilearned": "Science",
+        "environment": "Environment",
+        "sustainability": "Environment",
+        "DIY": "Community",
+        "EARTH": "Environment",
+        "Art": "Arts & Culture",
+        "history": "Arts & Culture",
     }
     
     articles = []
@@ -219,7 +210,7 @@ async def _fetch_reddit(client: httpx.AsyncClient, categories: dict[str, int]) -
             
         try:
             resp = await client.get(
-                f"https://www.reddit.com/r/{sub}/hot.json?limit=25",
+                f"https://www.reddit.com/r/{sub}/hot.json?limit=50",
                 headers={"User-Agent": "PositiveNewsApp/1.0"},
                 timeout=15.0
             )
@@ -268,7 +259,7 @@ def _parse_feed_sync(url: str):
 
 async def _fetch_rss(categories: dict[str, int]) -> list[dict]:
     feeds = [
-        # Dedicated positive/good news
+        # Positive / good news dedicated
         "https://www.goodnewsnetwork.org/feed/",
         "https://www.positive.news/feed/",
         "https://www.optimistdaily.com/feed/",
@@ -276,25 +267,24 @@ async def _fetch_rss(categories: dict[str, int]) -> list[dict]:
         "https://www.sunnyskyz.com/rss.php",
         "https://www.upworthy.com/feeds/feed.rss",
         "https://www.goodgoodgood.co/rss",
-        "https://www.shareable.net/feed/",
-        "https://yesmagazine.org/feed/",
-        "https://globaloptimism.com/feed/",
-        "https://thecorrespondent.com/feed/rss",
-        "https://futurecrunch.com/feed/",
-        # Science & environment
+        "https://www.huffpost.com/section/good-news/feed",
+        "https://greatergood.berkeley.edu/feeds/news",
+        "https://www.today.com/feed",
+        # Science
         "https://www.sciencedaily.com/rss/top/science.xml",
-        "https://feeds.nationalgeographic.com/ng/News/News_Main",
-        "https://www.treehugger.com/feeds/all",
-        "https://inhabitat.com/feed/",
-        "https://cleantechnica.com/feed/",
-        "https://www.renewableenergyworld.com/feed/",
-        # Health & wellness
-        "https://www.health.com/feeds/all",
-        "https://greatergood.berkeley.edu/feeds/articles",
-        # Community & culture
-        "https://www.globalcitizen.org/en/feed/",
-        "https://nextcity.org/feed",
-        "https://civicnation.org/feed/",
+        "https://feeds.feedburner.com/sciencealert-latestnews",
+        "https://www.newscientist.com/feed/home/",
+        "https://rss.sciencemag.org/rss/news_current.xml",
+        # Environment
+        "https://www.theguardian.com/environment/rss",
+        "https://grist.org/feed/",
+        "https://e360.yale.edu/feed",
+        # Technology
+        "https://feeds.feedburner.com/TechCrunch",
+        "https://www.wired.com/feed/rss",
+        # Health
+        "https://rss.medicalnewstoday.com/featurednews.xml",
+        "https://feeds.webmd.com/rss/rss.aspx?RSSSource=RSS_PUBLIC",
     ]
     
     articles = []
@@ -307,8 +297,8 @@ async def _fetch_rss(categories: dict[str, int]) -> list[dict]:
         try:
             parsed = await asyncio.to_thread(_parse_feed_sync, feed_url)
             source_name = getattr(parsed.feed, "title", "RSS Feed")
-
-            for entry in parsed.entries[:50]:  # raised from 25 → 50
+            
+            for entry in parsed.entries[:50]:
                 url = getattr(entry, "link", "").strip()
                 if not url or url in seen:
                     continue
