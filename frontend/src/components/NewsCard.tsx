@@ -45,10 +45,10 @@ const NewsCard: React.FC<NewsCardProps> = ({ article, onSaveToggle, featured = f
                 bg-white/[0.03] border border-white/[0.08] backdrop-blur-xl rounded-2xl overflow-hidden
                 transition-all duration-300 hover:-translate-y-1 hover:bg-white/[0.06]
                 hover:border-sky-500/30 hover:shadow-[0_8px_32px_rgba(14,165,233,0.15)]
-                ${featured ? 'md:flex-row' : ''}`}
+                ${featured ? 'md:flex-row md:min-h-[420px]' : ''}`}
         >
             {/* Image Section */}
-            <div className={`relative overflow-hidden flex-shrink-0 ${featured ? 'md:w-[45%] h-64 md:h-auto' : 'h-52'}`}>
+            <div className={`relative overflow-hidden flex-shrink-0 ${featured ? 'md:w-[45%] h-64 md:h-full' : 'h-52'}`}>
                 {imageSrc ? (
                     <img
                         src={imageSrc}

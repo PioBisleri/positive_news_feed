@@ -49,7 +49,7 @@ app = FastAPI(
 # ── CORS ──────────────────────────────────────────────────────────────────────
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["https://vercel.com/piobisleris-projects/brightfeed/5NHpNksdWonvMSNX9KYRNNYB1LZF"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

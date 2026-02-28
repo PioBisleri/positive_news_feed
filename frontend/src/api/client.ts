@@ -1,8 +1,12 @@
 import axios from 'axios';
 import type { Article, ArticleFilters, Category } from '../types';
 
+const API_BASE = import.meta.env.VITE_API_URL
+    ? `${import.meta.env.VITE_API_URL}/api`
+    : '/api';
+
 const client = axios.create({
-    baseURL: '/api',
+    baseURL: API_BASE,
     headers: {
         'Content-Type': 'application/json',
     },
