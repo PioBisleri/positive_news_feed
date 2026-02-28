@@ -5,6 +5,7 @@ Searches for all kinds of uplifting, positive news per category and stores
 new articles in the DB. De-duplicates by URL so re-runs are safe.
 """
 import logging
+import re
 import asyncio
 import time
 from datetime import datetime, timezone
@@ -208,7 +209,7 @@ async def _fetch_reddit(client: httpx.AsyncClient, categories: dict[str, int]) -
                     "publishedAt": datetime.fromtimestamp(post.get("created_utc", 0), tz=timezone.utc).isoformat()
                 }
                 
-                if _is_positive(raw) and image_url:
+                if _is_positive(raw):
                     seen.add(url)
                     raw["_cat_id"] = cat_id
                     articles.append(raw)
@@ -258,15 +259,23 @@ async def _fetch_rss(categories: dict[str, int]) -> list[dict]:
                 elif hasattr(entry, "summary"):
                     description = entry.summary
                 
-                # Try to get image
+                # Try to get image — check all common RSS image locations
                 image_url = ""
                 if hasattr(entry, "media_content") and entry.media_content:
                     image_url = entry.media_content[0].get("url", "")
-                elif hasattr(entry, "links"):
+                if not image_url and hasattr(entry, "media_thumbnail") and entry.media_thumbnail:
+                    image_url = entry.media_thumbnail[0].get("url", "")
+                if not image_url and hasattr(entry, "links"):
                     for link in entry.links:
-                        if link.get("type", "").startswith("image/"):
+                        lt = link.get("type", "")
+                        if lt.startswith("image/") or link.get("rel") == "enclosure":
                             image_url = link.get("href", "")
                             break
+                # Last resort: parse first <img> from the HTML description
+                if not image_url and description:
+                    m = re.search(r'<img[^>]+src=["\']([^"\']+)["\']', description)
+                    if m:
+                        image_url = m.group(1)
                             
                 published_at_str = ""
                 if hasattr(entry, "published_parsed") and entry.published_parsed:
@@ -282,17 +291,17 @@ async def _fetch_rss(categories: dict[str, int]) -> list[dict]:
                     "publishedAt": published_at_str
                 }
                 
-                if _is_positive(raw) and image_url:
+                if _is_positive(raw):
                     seen.add(url)
-                    
-                    # Guess category
+
+                    # Guess category from title + description text
                     text = (title + " " + description).lower()
                     assigned_cat_id = default_cat_id
                     for word, cat_id in cat_words.items():
                         if word in text:
                             assigned_cat_id = cat_id
                             break
-                            
+
                     raw["_cat_id"] = assigned_cat_id
                     articles.append(raw)
         except Exception as e:
