@@ -246,6 +246,69 @@ def _parse_feed_sync(url: str):
     return feedparser.parse(url)
 
 
+def _extract_entries(parsed, cat_words: dict, default_cat_id) -> list[dict]:
+    """Parse entries from a single feedparser result into raw article dicts."""
+    source_name = getattr(parsed.feed, "title", "RSS Feed")
+    results = []
+    for entry in parsed.entries[:50]:
+        url = getattr(entry, "link", "").strip()
+        if not url:
+            continue
+
+        title = getattr(entry, "title", "")
+
+        description = ""
+        if hasattr(entry, "description"):
+            description = entry.description
+        elif hasattr(entry, "summary"):
+            description = entry.summary
+
+        # Try every common RSS image location
+        image_url = ""
+        if hasattr(entry, "media_content") and entry.media_content:
+            image_url = entry.media_content[0].get("url", "")
+        if not image_url and hasattr(entry, "media_thumbnail") and entry.media_thumbnail:
+            image_url = entry.media_thumbnail[0].get("url", "")
+        if not image_url and hasattr(entry, "links"):
+            for link in entry.links:
+                lt = link.get("type", "")
+                if lt.startswith("image/") or link.get("rel") == "enclosure":
+                    image_url = link.get("href", "")
+                    break
+        if not image_url and description:
+            m = re.search(r'<img[^>]+src=["\']([^"\']+)["\']', description)
+            if m:
+                image_url = m.group(1)
+
+        published_at_str = ""
+        if hasattr(entry, "published_parsed") and entry.published_parsed:
+            published_at_str = datetime.fromtimestamp(
+                time.mktime(entry.published_parsed), tz=timezone.utc
+            ).isoformat()
+
+        raw = {
+            "title": title,
+            "description": description[:500],
+            "url": url,
+            "urlToImage": image_url,
+            "source": {"name": source_name},
+            "author": getattr(entry, "author", ""),
+            "publishedAt": published_at_str,
+        }
+
+        if _is_positive(raw):
+            text = (title + " " + description).lower()
+            assigned_cat_id = default_cat_id
+            for word, cat_id in cat_words.items():
+                if word in text:
+                    assigned_cat_id = cat_id
+                    break
+            raw["_cat_id"] = assigned_cat_id
+            results.append(raw)
+
+    return results
+
+
 async def _fetch_rss(categories: dict[str, int]) -> list[dict]:
     feeds = [
         # Dedicated positive/good news
